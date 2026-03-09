@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seodra Safety Bracelet | Pink Edition</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            /* Background remains neutral to make pink pop */
+            background-color: #fcf8f9; 
+            padding: 20px;
+            color: #4a4a4a;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3); /* Soft pink shadow */
+            max-width: 400px;
+            margin: 0 auto;
+            border: 1px solid #ffdae0;
+        }
+        h1 { 
+            color: #d81b60; /* Deep Rose Pink */
+            margin-bottom: 10px; 
+            font-weight: 700;
+        }
+        #status-text {
+            color: #ad1457; /* Darker Pink for text */
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-dot {
+            height: 12px; width: 12px; background-color: #ffd1dc;
+            border-radius: 50%; display: inline-block; margin-right: 5px;
+        }
+        .connected .status-dot { 
+            background-color: #ff4081; /* Hot Pink when connected */
+            box-shadow: 0 0 8px #ff4081;
+        }
+        
+        /* The Main Action Button */
+        .btn {
+            background-color: #ff85a2; /* Pastel Pink */
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 133, 162, 0.4);
+        }
+        .btn:hover {
+            background-color: #ff4d7d; /* Brighter Pink on hover */
+        }
+        .btn:active { transform: scale(0.95); }
+
+        /* Alert Boxes - Keeping solid colors for safety recognition */
+        .alert-box {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 15px;
+            animation: shake 0.5s;
+        }
+        #fake-call-ui { 
+            background: #28a745; /* Solid Green */
+            color: white; 
+            border: none;
+        }
+        #emergency-ui { 
+            background: #dc3545; /* Solid Red */
+            color: white; 
+            border: none;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            50% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Seodra</h1>
+        <p style="color: #ff85a2; font-size: 14px;">Your Personal Safety Companion</p>
+        
+        <div id="connection-status" class="">
+            <span class="status-dot"></span>
+            <span id="status-text">Searching for Bracelet...</span>
+        </div>
+
+        <button class="btn" onclick="connectToBracelet()">Connect Bracelet</button>
+
+        <div id="fake-call-ui" class="alert-box">
+            <h3>📞 CALL INCOMING</h3>
+            <p>Fake call audio is playing now.</p>
+        </div>
+
+        <div id="emergency-ui" class="alert-box">
+            <h3>⚠️ ALERT SENT</h3>
+            <p>Contacts have been notified!</p>
+        </div>
+    </div>
+
+    <audio id="ringtone" src="https://www.soundjay.com/phone/phone-calling-1.mp3" preload="auto"></audio>
+
+    <script>
+        const SERVICE_UUID = '19b10000-e8f2-537e-4f6c-d104768a1214';
+        const CHARACTERISTIC_UUID = '19b10001-e8f2-537e-4f6c-d104768a1214';
+
+        let braceletChar;
+
+        async function connectToBracelet() {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: 'SeodraBracelet' }],
+                    optionalServices: [SERVICE_UUID]
+                });
+
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                braceletChar = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+                document.getElementById('connection-status').className = 'connected';
+                document.getElementById('status-text').innerText = "Seodra Connected";
+                
+                await braceletChar.startNotifications();
+                braceletChar.addEventListener('characteristicvaluechanged', handleBraceletData);
+                
+            } catch (error) {
+                console.log("Connect Error: " + error);
+            }
+        }
+
+        function handleBraceletData(event) {
+            const clickCount = event.target.value.getUint8(0);
+            
+            document.getElementById('fake-call-ui').style.display = 'none';
+            document.getElementById('emergency-ui').style.display = 'none';
+
+            if (clickCount === 1) {
+                document.getElementById('fake-call-ui').style.display = 'block';
+                document.getElementById('ringtone').play();
+            } 
+            else if (clickCount >= 2) {
+                document.getElementById('emergency-ui').style.display = 'block';
+                if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+            }
+        }
+    </script>
+</body>
+</html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seodra Safety Bracelet</title>
+    <style>
+        body {
+            background-color: #ffccff;
+            color: #000;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        button {
+            background-color: #ff66b2;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px;
+            border: 2px solid #ff66b2;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Seodra Safety Bracelet</h1>
+    <div id="connection-status">Device Status: Disconnected</div>
+    <button id="connect-btn">Connect Device</button>
+    <button id="disconnect-btn">Disconnect Device</button>
+
+    <h2>Fake Call Mode</h2>
+    <input type="text" id="fake-call-number" placeholder="Enter Fake Call Number">
+    <input type="file" id="fake-call-audio" accept="audio/*">
+    
+    <h2>Emergency Call Mode</h2>
+    <input type="text" id="emergency-number" placeholder="Enter Emergency Number">
+    <input type="file" id="emergency-audio" accept="audio/*">
+    
+    <h2>Emergency Siren</h2>
+    <label for="siren-audio">Upload Siren Audio (Optional):</label>
+    <input type="file" id="siren-audio" accept="audio/*">
+    
+    <button id="trigger-fake-call">Trigger Fake Call</button>
+    <button id="trigger-emergency-call">Trigger Emergency Call</button>
+
+    <script>
+        let deviceConnected = false;
+
+        document.getElementById('connect-btn').onclick = function() {
+            deviceConnected = true;
+            document.getElementById('connection-status').innerText = "Device Status: Connected";
+        };
+
+        document.getElementById('disconnect-btn').onclick = function() {
+            deviceConnected = false;
+            document.getElementById('connection-status').innerText = "Device Status: Disconnected";
+        };
+
+        document.getElementById('trigger-fake-call').onclick = function() {
+            if (deviceConnected) {
+                const fakeCallNumber = document.getElementById('fake-call-number').value;
+                const fakeCallAudio = document.getElementById('fake-call-audio').files[0];
+                // Logic to trigger fake call with audio
+                alert(`Fake call to ${fakeCallNumber} initiated!`);
+            } else {
+                alert("Please connect the device first.");
+            }
+        };
+
+        document.getElementById('trigger-emergency-call').onclick = function() {
+            if (deviceConnected) {
+                const emergencyNumber = document.getElementById('emergency-number').value;
+                const emergencyAudio = document.getElementById('emergency-audio').files[0];
+                // Logic to trigger emergency call with audio
+                alert(`Emergency call to ${emergencyNumber} initiated!`);
+                const sirenAudio = document.getElementById('siren-audio').files[0];
+                if (sirenAudio) {
+                    // Logic to play siren audio
+                    alert("Emergency siren activated!");
+                }
+            } else {
+                alert("Please connect the device first.");
+            }
+        };
+    </script>
+</body>
+</html>
